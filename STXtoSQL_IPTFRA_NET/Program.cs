@@ -19,6 +19,7 @@ namespace STXtoSQL_IPTFRA_NET
             int odbcCnt = 0;
             int insertCnt = 0;
             int importCnt = 0;
+            int arborCnt = 0;
 
             #region FromSTRATIX
             ODBCData objODBC = new ODBCData();
@@ -59,11 +60,11 @@ namespace STXtoSQL_IPTFRA_NET
 
                 /*
                  * Build a more useful arbor from the Stratix data for each job
-                 * MIGHT NEED TO MOVE THIS AFTER THE NEXT METHOD CALL
+                 * Build Arbor from IMPORT and into Arbor table
                  */
                 try
                 {
-                    //dupCnt = objSQL.Build_Arbor();
+                    arborCnt = objSQL.Build_Arbor();
                 }
                 catch (Exception ex)
                 {
@@ -84,7 +85,7 @@ namespace STXtoSQL_IPTFRA_NET
                     return;
                 }
 
-                Logger.LogWrite("MSG", "ODBC/IMPORT/INSERT=" + odbcCnt.ToString() + ":" + importCnt.ToString() + ":" + insertCnt.ToString());
+                Logger.LogWrite("MSG", "ODBC/IMPORT/ARBOR/INSERT=" + odbcCnt.ToString() + ":" + importCnt.ToString() + ":" + arborCnt.ToString() + ":" + insertCnt.ToString());
             }
             else
                 Logger.LogWrite("MSG", "No data");
@@ -93,8 +94,8 @@ namespace STXtoSQL_IPTFRA_NET
             #endregion
 
             // Testing
-            Console.WriteLine("Press key to exit");
-            Console.ReadKey();
+            //Console.WriteLine("Press key to exit");
+            //Console.ReadKey();
         }
     }
 }

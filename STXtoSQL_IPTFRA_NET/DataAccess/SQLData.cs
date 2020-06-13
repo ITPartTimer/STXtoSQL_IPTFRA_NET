@@ -50,14 +50,11 @@ namespace STXtoSQL.DataAccess
                      * 2. Loop through each wdth_X and nbr_X pair
                      * IMPORT_tbl_IPTFRA needs to allow NULLS for the wdth_X and nbr_X fields
                      */
-                    cmd.CommandText = "INSERT INTO ST_IMPORT_tbl_IPTFRA (fra_job_no,fra_tot_wdth) VALUES (@arg1,@arg2)";
+                    
                   
                     foreach (IPTFRA s in lstIPTFRA)
-                    {
-                        int j = Convert.ToInt32(s.job_no);
-
-                        cmd.Parameters.Add("@arg1", SqlDbType.Int).Value = j;
-                        cmd.Parameters.Add("@arg2", SqlDbType.Decimal).Value = Convert.ToDecimal(s.tot_wdth);
+                    {                      
+                        cmd.CommandText = "INSERT INTO ST_IMPORT_tbl_IPTFRA (fra_job_no,fra_tot_wdth) VALUES (" + s.job_no.ToString() +"," + s.tot_wdth.ToString() + ")";                      
 
                         cmd.ExecuteNonQuery();
 
@@ -70,9 +67,9 @@ namespace STXtoSQL.DataAccess
                             string wdth = propertyWdth.GetValue(s, null).ToString();
 
                             PropertyInfo propertyNbr = s.GetType().GetProperty(n);
-                            string nbr = propertyWdth.GetValue(s, null).ToString();
+                            string nbr = propertyNbr.GetValue(s, null).ToString();
 
-                            cmd.CommandText = "UPDATE ST_IMPORT_tbl_IPTFRA SET fra_wdth_" + a.ToString() + "=" + wdth + ",fra_nbr_slit_" + a.ToString() + "=" + nbr + " WHERE fra_Job_No=" + j.ToString();
+                            cmd.CommandText = "UPDATE ST_IMPORT_tbl_IPTFRA SET fra_wdth_" + a.ToString() + "=" + wdth + ",fra_nbr_slit_" + a.ToString() + "=" + nbr + " WHERE fra_Job_No=" + s.job_no.ToString();
 
                             cmd.ExecuteNonQuery();
                         }                       
@@ -149,6 +146,49 @@ namespace STXtoSQL.DataAccess
             }
 
             return r;
-        } 
+        }
+
+        /*
+         * Build one continuous arbor from Jobs in IMPORT.
+         * Each cut on the arbor has a position from 1 to X
+         */
+        public int Build_Arbor()
+        {
+            // Returning rows inserted into IMPORT
+            int r = 0;
+
+            SqlConnection conn = new SqlConnection(STRATIXDataConnString);
+
+            try
+            {
+                conn.Open();
+
+                SqlCommand cmd = new SqlCommand();
+
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Connection = conn;
+
+                // Build Arbor SP.  Return rows inserted.
+                cmd.CommandText = "ST_IMPORT_proc_IPTFRA_Build_Arbor";
+
+                AddParamToSQLCmd(cmd, "@rows", SqlDbType.Int, 8, ParameterDirection.Output);
+
+                cmd.ExecuteNonQuery();
+
+                r = Convert.ToInt32(cmd.Parameters["@rows"].Value);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                // No matter what close and dispose of the connetion
+                conn.Close();
+                conn.Dispose();
+            }
+
+            return r;
+        }
     }
 }
